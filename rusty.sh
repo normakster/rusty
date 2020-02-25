@@ -1,6 +1,7 @@
 #!/bin/bash
+# set -e # Script exists on first failure
+# set -x # For debugging purpose
 echo "sup brotato"
-#GEORGE_DIR=$(dirname `realpath $(which george)`)
 
 #gits=('')
 utils=('docker' 'python' 'git' 'aws' 'rsync' 'curl')
@@ -128,34 +129,30 @@ DOCKER(){
 
 launchRusty(){
 
-  # if [[ $(checkRusty ) == 'true' ]]; then
   checkRusty
   if [[ $? -eq 0 ]]; then
 
     if [[ $(uname) == 'MINGW64_NT-10.0' ]]; then
       windOs='winpty '
     fi
-    cd ~/dev
-    echo ""
-    # /c/Users/Normakster/dev
-    local mnt=$(pwd)
-    echo $mnt
-    ${windOs}docker run \
-      --name rusty \
-      -it \
-      --rm \
-      --network rusty-net \
-      --dns 8.8.8.8 \
-      --privileged \
-      --mount "type=bind,src=$(pwd),dst=/deven,ro" \
-      -v //var/run/docker.sock:/var/run/docker.sock \
-      rusty:latest
-      # -v '\Program Files\Git\var\run\docker.sock':/var/run/docker.sock \
-     #--mount source=rusty,destination=/
-     #-v rusty:/data
-     #
-     # -v /var/run/docker.sock:/var/run/docker.sock
+    # echo ""
+    # echo $(pwd)
+    # echo ""
+    cd ..
+    # echo $(pwd)
+    echo "press enter to continue" && read -a line
 
+    local containers=($(docker ps -a --format "{{.Names}}"))
+    declare -A map    # required: declare explicit associative array
+    for key in "${!containers[@]}"; do map[${containers[$key]}]="$key"; done
+    if [[ -n "${map[rusty]}" ]]; then
+      echo "starting stopped container : "
+      ${windOs}make -f ./rusty/makefile login
+    else
+      echo "running fresh : "${ctnr[i]}
+      ${windOs}make -f ./rusty/makefile run
+    fi
+    echo "press enter to continue" && read -a line
   fi
 }
 
@@ -163,10 +160,6 @@ buildRusty(){
   cd ~/dev/rusty
   docker build --rm -t rusty:latest .
 }
-#
-# launchRusty(){
-#   docker run --name rusty -it --rm --mount 'type=bind,src=$(pwd)/..,dst=/dev' rusty:latest
-# }
 
 checkRusty(){
   # local good2go=false
