@@ -38,6 +38,3 @@ stop:
 reset:
 	@make stop
 	@docker container rm rusty
-
-
-	# --mount "type=bind,src=/$(LOCAL_PATH),dst=/rusty" \

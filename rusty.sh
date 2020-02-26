@@ -25,14 +25,10 @@ parse() {
 				echo "launching aws"
 				AWS
 				;;
-			rusty)
+			launch)
 				echo "launching Rusty"
 				launchRusty
 				;;
-      build)
-        echo "building Rusty"
-        buildRusty
-        ;;
 			backup)
 				echo "what to backup?"
 				read in
@@ -140,7 +136,7 @@ launchRusty(){
     # echo ""
     cd ..
     # echo $(pwd)
-    echo "press enter to continue" && read -a line
+    #echo "press enter to continue" && read -a line
 
     local containers=($(docker ps -a --format "{{.Names}}"))
     declare -A map    # required: declare explicit associative array
@@ -157,7 +153,6 @@ launchRusty(){
 }
 
 buildRusty(){
-  cd ~/dev/rusty
   docker build --rm -t rusty:latest .
 }
 
@@ -170,42 +165,44 @@ checkRusty(){
   echo "Checking for Rusty image...."
   #docker images rusty --format "{{.Repository}}:{{.Tag}}"
   local img=($(docker images rusty --format "{{.Repository}}:{{.Tag}}"))
+  echo ${!img[@]}
+
   for i in "${!img[@]}"; do
     echo ${img[i]}
     if [[ ${img[i]} == 'rusty:latest' ]]; then
       echo "--image found-- ${img[i]}"
       return 0
-    else
-      echo "Do you want to try pulling?"
-      ask2proceed
-      if [[ $? -eq 0 ]]; then
-        echo "pulling...."
-        echo "success: $success"
-        if [[ "$success" = true ]]; then
-          echo '--successful pull'
-        #   # good2go=true
-          return 0
-        fi
-      else
-        if ls ./rusty/dockerfile 1> /dev/null 2>&1; then
-          echo "Do you want to build it?"
-          ask2proceed
-          if [[ $? -eq 0 ]]; then
-            echo "docker build -t rusty -f ./rusty/dockerfile ./rusty"
-            $succes=true
-            if [[ "$success" = true ]]; then
-              echo '--successful build'
-            #   # good2go=true
-              return 0
-            fi
-          fi
-        else
-          echo "Please locate Rusty and try again later."
-          return 1
-        fi
-      fi
     fi
   done
+
+  echo "Do you want to try pulling?"
+  ask2proceed
+  if [[ $? -eq 0 ]]; then
+    echo "pulling...."
+    #success="true"
+    if [[ "$success" = "true" ]]; then
+      echo '--successful pull'
+    #   # good2go=true
+      return 0
+    else
+      echo 'failed to pull: no image found.'
+    fi
+  fi
+  echo "Do you want to try building?"
+  ask2proceed
+  if [[ $? -eq 0 ]]; then
+    make build
+    success="true"
+    if [[ "$success" = "true" ]]; then
+      echo '--successful build'
+    #   # good2go=true
+      return 0
+    else
+      echo 'failed to build.'
+    fi
+  fi
+  echo "press enter to continue" && read -a line
+
 }
 
 checkEnv(){
