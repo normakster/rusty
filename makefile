@@ -24,10 +24,11 @@ build:
 	@docker build -t rusty:latest .
 run:
 	@docker run --name rusty -it \
-		--network rusty-net \
+		--network=rusty-net \
+		-p 81:80 \
 		--dns 8.8.8.8 \
 		--privileged \
-		--mount "type=bind,src=/$(LOCAL_PATH),dst=/rusty" \
+		--mount "type=bind,src=/$(LOCAL_PATH),dst=/$(LOCAL_PATH)" \
 		-v //var/run/docker.sock:/var/run/docker.sock \
 		rusty:latest
 login:
@@ -37,3 +38,6 @@ stop:
 reset:
 	@make stop
 	@docker container rm rusty
+
+
+	# --mount "type=bind,src=/$(LOCAL_PATH),dst=/rusty" \
